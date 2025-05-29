@@ -14,8 +14,8 @@ export const ExcelDataLoader: React.FC<ExcelDataLoaderProps> = ({
   onSecondNameOfWorkChange,
 }) => {
   const [error, setError] = useState<string | null>(null);
-  const [nameOfWork, setNameOfWork] = useState<string>("");
-  const [secondNameOfWork, setSecondNameOfWork] = useState<string>("");
+  const [_, setNameOfWork] = useState<string>("");
+  const [__, setSecondNameOfWork] = useState<string>("");
 
   useEffect(() => {
     const loadExcelData = async () => {

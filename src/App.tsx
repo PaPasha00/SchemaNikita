@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { DataSchemaVisualization } from "./components/DataSchemaVisualization";
 import { ExcelDataLoader } from "./components/ExcelDataLoader";
 import type { ProjectData } from "./types/dataTypes";
 
 function App() {
   const [data, setData] = useState<ProjectData | null>(null);
-  const [nameOfWork, setNameOfWork] = useState<string>("");
+  const [_, setNameOfWork] = useState<string>("");
   const [secondNameOfWork, setSecondNameOfWork] = useState<string>("");
 
   return (
