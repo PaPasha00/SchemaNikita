@@ -1,4 +1,5 @@
 export interface Company {
+  id: string;
   company: string;
   description: string;
   year: string;
