@@ -21,6 +21,11 @@ const countryToCode: { [key: string]: string } = {
   канада: "ca",
   израиль: "il",
   австралия: "au",
+  нидерланды: "nl",
+  швеция: "se",
+  оаэ: "ae",
+  "объединённые арабские эмираты": "ae",
+
   // Russian names (original case)
   США: "us",
   Россия: "ru",
@@ -34,6 +39,11 @@ const countryToCode: { [key: string]: string } = {
   Канада: "ca",
   Израиль: "il",
   Австралия: "au",
+  Нидерланды: "nl",
+  Швеция: "se",
+  ОАЭ: "ae",
+  "Объединённые Арабские Эмираты": "ae",
+
   // English names
   usa: "us",
   russia: "ru",
@@ -48,6 +58,11 @@ const countryToCode: { [key: string]: string } = {
   canada: "ca",
   israel: "il",
   australia: "au",
+  netherlands: "nl",
+  holland: "nl",
+  sweden: "se",
+  uae: "ae",
+  "united arab emirates": "ae",
 };
 
 export const CountryBlock: React.FC<CountryBlockProps> = ({
