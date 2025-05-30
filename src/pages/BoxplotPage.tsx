@@ -5,11 +5,6 @@ interface BoxplotPageProps {
   data: ProjectData;
 }
 
-interface StreamCompany {
-  stream: string;
-  companies: Company[];
-}
-
 type CompanyWithMeta = Company & { country: string; type: string };
 
 export const BoxplotPage: React.FC<BoxplotPageProps> = ({ data }) => {
