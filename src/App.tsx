@@ -12,6 +12,7 @@ import { DataTable } from "./components/DataTable";
 import { ExcelEditor } from "./components/ExcelEditor";
 import { DownloadExcelButton } from "./components/DownloadExcelButton";
 import type { ProjectData } from "./types/dataTypes";
+import { BoxplotPage } from "./pages/BoxplotPage";
 
 function MainLayout() {
   const [data, setData] = useState<ProjectData | null>(null);
@@ -69,6 +70,12 @@ function MainLayout() {
         >
           {isVisualizationRoute ? "Показать таблицу" : "Показать схему"}
         </Link>
+        <Link
+          to="/boxplot"
+          className="bg-yellow-500 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-yellow-600 transition-colors"
+        >
+          Boxplot
+        </Link>
       </div>
 
       {/* Кнопка переключения информации */}
@@ -123,6 +130,7 @@ function MainLayout() {
           path="/table"
           element={<DataTable data={data} onDataChange={handleDataRefresh} />}
         />
+        <Route path="/boxplot" element={data && <BoxplotPage data={data} />} />
       </Routes>
     </div>
   );

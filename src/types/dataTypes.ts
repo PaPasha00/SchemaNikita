@@ -3,6 +3,7 @@ export interface Company {
   company: string;
   description: string;
   year: string;
+  stream?: string;
   links?: string[];  // Optional array of links
 }
 

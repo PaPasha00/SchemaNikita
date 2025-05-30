@@ -11,6 +11,27 @@ interface CompanyBlockProps {
   hideTooltip: () => void;
 }
 
+// Маппинг 10 цветов для разных стримов (по числовому значению)
+const streamColors = [
+  "#f87171", // красный
+  "#fbbf24", // оранжевый
+  "#34d399", // зеленый
+  "#60a5fa", // синий
+  "#a78bfa", // фиолетовый
+  "#f472b6", // розовый
+  "#38bdf8", // голубой
+  "#facc15", // желтый
+  "#4ade80", // лаймовый
+  "#818cf8", // индиго
+];
+
+function getStreamColor(stream?: string) {
+  if (!stream) return "#e5e7eb"; // серый если не указан
+  const num = parseInt(stream, 10);
+  if (isNaN(num)) return "#e5e7eb";
+  return streamColors[num % streamColors.length];
+}
+
 export const CompanyBlock: React.FC<CompanyBlockProps> = ({
   company,
   countryIndex,
@@ -92,11 +113,15 @@ export const CompanyBlock: React.FC<CompanyBlockProps> = ({
   return (
     <div
       ref={ref}
-      className={`w-[350px] bg-white border-2 border-sky-100 rounded-xl px-6 py-3 shadow-lg transition-colors
+      className={`w-[350px] border-2 rounded-xl px-6 py-3 shadow-lg transition-colors
         ${hasLinks ? "hover:border-sky-300 cursor-pointer" : ""}`}
+      style={{
+        borderColor: getStreamColor(company.stream),
+      }}
       onMouseEnter={(e) => showTooltip(company, e)}
       onMouseLeave={hideTooltip}
       onClick={hasLinks ? handleClick : undefined}
+      title={company.stream ? `Stream: ${company.stream}` : "Stream: не указан"}
     >
       <span className="font-medium text-sky-800 text-sm whitespace-normal break-words block">
         {company.company}

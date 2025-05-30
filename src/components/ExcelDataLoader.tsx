@@ -84,6 +84,7 @@ export const ExcelDataLoader: React.FC<ExcelDataLoaderProps> = ({
             company: row.Company || "",
             year: row.Year?.toString() || "",
             description: row.Description || "",
+            stream: row.Stream?.toString() || undefined,
             links: row.links
               ? row.links.split(/;\s*/).map((link: string) => link.trim())
               : undefined,

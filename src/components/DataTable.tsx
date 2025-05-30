@@ -79,6 +79,26 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onDataChange }) => {
     return countryToCode[countryName.toLowerCase()] || "un";
   };
 
+  // Добавим маппинг цветов для Stream
+  const streamColors = [
+    "#f87171", // красный
+    "#fbbf24", // оранжевый
+    "#34d399", // зеленый
+    "#60a5fa", // синий
+    "#a78bfa", // фиолетовый
+    "#f472b6", // розовый
+    "#38bdf8", // голубой
+    "#facc15", // желтый
+    "#4ade80", // лаймовый
+    "#818cf8", // индиго
+  ];
+  function getStreamColor(stream?: string) {
+    if (!stream) return "#e5e7eb";
+    const num = parseInt(stream, 10);
+    if (isNaN(num)) return "#e5e7eb";
+    return streamColors[num % streamColors.length];
+  }
+
   // Собираем все данные в плоский массив для таблицы
   const tableData = data.countries.flatMap((country) =>
     country.types.flatMap((type) =>
@@ -92,6 +112,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onDataChange }) => {
         description: company.description,
         links: company.links?.join(", ") || "",
         nameOfWork: data.name,
+        stream: company.stream,
       }))
     )
   );
@@ -226,7 +247,8 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onDataChange }) => {
               <col className="w-[15%]" />
               <col className="w-[10%]" />
               <col className="w-[25%]" />
-              <col className="w-[15%]" />
+              <col className="w-[10%]" /> {/* Stream */}
+              <col className="w-[10%]" /> {/* Ссылки */}
               <col className="w-[5%]" /> {/* Для кнопки удаления */}
             </colgroup>
             <thead>
@@ -236,6 +258,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onDataChange }) => {
                 <th className="p-4 text-left font-semibold">Компания</th>
                 <th className="p-4 text-left font-semibold">Год</th>
                 <th className="p-4 text-left font-semibold">Описание</th>
+                <th className="p-4 text-left font-semibold">Stream</th>
                 <th className="p-4 text-left font-semibold">Ссылки</th>
                 <th className="p-4 text-center font-semibold">Действия</th>
               </tr>
@@ -260,9 +283,23 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onDataChange }) => {
                     </div>
                   </td>
                   <td className="p-4">{row.type}</td>
-                  <td className="p-4">{row.company}</td>
+                  <td
+                    className="p-4"
+                    style={{
+                      border: `2px solid ${getStreamColor(row.stream)}`,
+                      borderWidth: 2,
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                    }}
+                    title={
+                      row.stream ? `Stream: ${row.stream}` : "Stream: не указан"
+                    }
+                  >
+                    {row.company}
+                  </td>
                   <td className="p-4">{row.year}</td>
                   <td className="p-4">{row.description}</td>
+                  <td className="p-4 text-center">{row.stream || "-"}</td>
                   <td className="p-4">
                     <div className="flex flex-wrap gap-2">
                       {row.links.split(", ").map((link, i) =>

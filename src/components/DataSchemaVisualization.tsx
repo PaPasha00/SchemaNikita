@@ -14,7 +14,7 @@ export const DataSchemaVisualization: React.FC<
 > = ({ data }) => {
   const [tooltip, setTooltip] = useState({
     visible: false,
-    content: { description: "", year: "" },
+    content: { description: "", year: "", stream: "" },
     position: { x: 0, y: 0 },
   });
 
@@ -250,7 +250,11 @@ export const DataSchemaVisualization: React.FC<
   const showTooltip = (company: Company, e: React.MouseEvent) => {
     setTooltip({
       visible: true,
-      content: { description: company.description, year: company.year },
+      content: {
+        description: company.description,
+        year: company.year,
+        stream: company.stream || "",
+      },
       position: { x: e.clientX, y: e.clientY },
     });
   };
@@ -316,18 +320,29 @@ export const DataSchemaVisualization: React.FC<
                       registerPosition={registerPosition}
                     />
                     <div className="flex flex-col items-start gap-2 w-full">
-                      {type.companies.map((company, companyIndex) => (
-                        <CompanyBlock
-                          key={companyIndex}
-                          company={company}
-                          countryIndex={countryIndex}
-                          typeIndex={typeIndex}
-                          companyIndex={companyIndex}
-                          registerPosition={registerPosition}
-                          showTooltip={showTooltip}
-                          hideTooltip={hideTooltip}
-                        />
-                      ))}
+                      {type.companies
+                        .slice()
+                        .sort((a, b) => {
+                          // Сортируем по stream (числовое значение), пустые в конец
+                          const aNum = a.stream ? parseInt(a.stream, 10) : NaN;
+                          const bNum = b.stream ? parseInt(b.stream, 10) : NaN;
+                          if (isNaN(aNum) && isNaN(bNum)) return 0;
+                          if (isNaN(aNum)) return 1;
+                          if (isNaN(bNum)) return -1;
+                          return aNum - bNum;
+                        })
+                        .map((company, companyIndex) => (
+                          <CompanyBlock
+                            key={companyIndex}
+                            company={company}
+                            countryIndex={countryIndex}
+                            typeIndex={typeIndex}
+                            companyIndex={companyIndex}
+                            registerPosition={registerPosition}
+                            showTooltip={showTooltip}
+                            hideTooltip={hideTooltip}
+                          />
+                        ))}
                     </div>
                   </div>
                 ))}
@@ -358,6 +373,10 @@ export const DataSchemaVisualization: React.FC<
             <p className="mb-2">{tooltip.content.description}</p>
             <p className="text-slate-300 font-medium">
               Год: {tooltip.content.year}
+            </p>
+            <p className="text-slate-300 font-medium">
+              Направление:{" "}
+              {tooltip.content.stream ? tooltip.content.stream : "не указано"}
             </p>
           </div>
         )}
