@@ -280,7 +280,7 @@ export const DataSchemaVisualization: React.FC<
               style={{
                 width: country.types.length * 400 + "px",
                 marginRight:
-                  countryIndex < data.countries.length - 1 ? "200px" : "0",
+                  countryIndex < data.countries.length - 1 ? "66px" : "0",
               }}
             >
               <CountryBlock
@@ -300,14 +300,14 @@ export const DataSchemaVisualization: React.FC<
               style={{
                 width: country.types.length * 400 + "px",
                 marginRight:
-                  countryIndex < data.countries.length - 1 ? "200px" : "0",
+                  countryIndex < data.countries.length - 1 ? "66px" : "0",
               }}
             >
-              <div className="flex flex-row items-start justify-center gap-24 min-w-max">
+              <div className="flex flex-row items-start justify-center gap-8 min-w-max">
                 {country.types.map((type, typeIndex) => (
                   <div
                     key={typeIndex}
-                    className="flex flex-col items-center gap-6 min-w-[350px]"
+                    className="flex flex-col items-center gap-2 min-w-[350px]"
                   >
                     <TypeBlock
                       type={type}
@@ -315,7 +315,7 @@ export const DataSchemaVisualization: React.FC<
                       typeIndex={typeIndex}
                       registerPosition={registerPosition}
                     />
-                    <div className="flex flex-col items-start gap-4 w-full">
+                    <div className="flex flex-col items-start gap-2 w-full">
                       {type.companies.map((company, companyIndex) => (
                         <CompanyBlock
                           key={companyIndex}
