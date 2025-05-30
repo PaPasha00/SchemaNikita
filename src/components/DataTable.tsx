@@ -70,7 +70,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onDataChange }) => {
     setFlagErrors((prev) => ({ ...prev, [countryCode]: true }));
   };
 
-  const handleDelete = async (id: string, rowData: any) => {
+  const handleDelete = async (rowData: any) => {
     if (!window.confirm("Вы уверены, что хотите удалить эту запись?")) {
       return;
     }
@@ -252,7 +252,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onDataChange }) => {
                   </td>
                   <td className="p-4 text-center">
                     <button
-                      onClick={() => handleDelete(row.id, row)}
+                      onClick={() => handleDelete(row)}
                       disabled={isDeleting}
                       className={`p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors ${
                         isDeleting ? "opacity-50 cursor-not-allowed" : ""

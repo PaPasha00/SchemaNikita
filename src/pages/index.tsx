@@ -3,13 +3,14 @@ import { ExcelDataLoader } from "../components/ExcelDataLoader";
 import { DataTable } from "../components/DataTable";
 import { DataSchemaVisualization } from "../components/DataSchemaVisualization";
 import { ExcelEditor } from "../components/ExcelEditor";
+import { DownloadExcelButton } from "../components/DownloadExcelButton";
 import type { ProjectData } from "../types/dataTypes";
 
 export default function Home() {
   const [data, setData] = useState<ProjectData | null>(null);
   const [showEditor, setShowEditor] = useState(false);
+  const [showButtons, setShowButtons] = useState(false);
   const [nameOfWork, setNameOfWork] = useState<string>("");
-  const [secondNameOfWork, setSecondNameOfWork] = useState<string>("");
 
   const handleDataLoaded = (loadedData: ProjectData) => {
     setData(loadedData);
@@ -27,18 +28,11 @@ export default function Home() {
           <h1 className="text-3xl font-bold text-gray-900">
             {nameOfWork || "Визуализация данных"}
           </h1>
-          <button
-            onClick={() => setShowEditor(!showEditor)}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          >
-            {showEditor ? "Скрыть редактор" : "Добавить данные"}
-          </button>
         </div>
 
         <ExcelDataLoader
           onDataLoaded={handleDataLoaded}
           onNameOfWorkChange={setNameOfWork}
-          onSecondNameOfWorkChange={setSecondNameOfWork}
         />
 
         {showEditor && (

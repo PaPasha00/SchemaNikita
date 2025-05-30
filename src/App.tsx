@@ -19,12 +19,12 @@ function MainLayout() {
   const [secondNameOfWork, setSecondNameOfWork] = useState<string>("");
   const [isInfoVisible, setIsInfoVisible] = useState(true);
   const [showEditor, setShowEditor] = useState(false);
+  const [showNavButtons, setShowNavButtons] = useState(false);
   const location = useLocation();
 
   const isVisualizationRoute = location.pathname === "/";
 
   const handleEditorSave = () => {
-    // Перезагружаем данные после сохранения
     window.location.reload();
   };
 
@@ -40,8 +40,22 @@ function MainLayout() {
         onSecondNameOfWorkChange={setSecondNameOfWork}
       />
 
+      {/* Кнопка-переключатель навигационных кнопок */}
+      <button
+        onClick={() => setShowNavButtons(!showNavButtons)}
+        className="fixed top-4 right-4 z-[60] bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg hover:bg-blue-600 transition-colors"
+      >
+        {showNavButtons ? "×" : "≡"}
+      </button>
+
       {/* Навигационные кнопки */}
-      <div className="fixed top-4 right-4 z-50 flex gap-2">
+      <div
+        className={`fixed top-4 right-16 z-50 flex gap-2 transition-all duration-300 ${
+          showNavButtons
+            ? "opacity-100"
+            : "opacity-0 pointer-events-none translate-x-5"
+        }`}
+      >
         <DownloadExcelButton />
         <button
           onClick={() => setShowEditor(!showEditor)}
