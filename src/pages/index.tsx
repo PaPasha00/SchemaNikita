@@ -2,23 +2,14 @@ import { useState } from "react";
 import { ExcelDataLoader } from "../components/ExcelDataLoader";
 import { DataTable } from "../components/DataTable";
 import { DataSchemaVisualization } from "../components/DataSchemaVisualization";
-import { ExcelEditor } from "../components/ExcelEditor";
-import { DownloadExcelButton } from "../components/DownloadExcelButton";
 import type { ProjectData } from "../types/dataTypes";
 
 export default function Home() {
   const [data, setData] = useState<ProjectData | null>(null);
-  const [showEditor, setShowEditor] = useState(false);
-  const [showButtons, setShowButtons] = useState(false);
   const [nameOfWork, setNameOfWork] = useState<string>("");
 
   const handleDataLoaded = (loadedData: ProjectData) => {
     setData(loadedData);
-  };
-
-  const handleEditorSave = () => {
-    // Перезагружаем данные после сохранения
-    window.location.reload();
   };
 
   return (
@@ -34,12 +25,6 @@ export default function Home() {
           onDataLoaded={handleDataLoaded}
           onNameOfWorkChange={setNameOfWork}
         />
-
-        {showEditor && (
-          <div className="mb-8">
-            <ExcelEditor onSave={handleEditorSave} />
-          </div>
-        )}
 
         {data && (
           <>
