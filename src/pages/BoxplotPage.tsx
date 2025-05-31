@@ -72,122 +72,125 @@ export const DirectionChartPage: React.FC<DirectionChartPageProps> = ({
   const chartWidth = streamMap.length * (colWidth + colGap);
 
   return (
-    <div className="w-full h-screen min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-8 overflow-x-auto overflow-y-auto">
+    <div className="w-full h-screen min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-8 overflow-auto">
       <h2 className="text-2xl font-bold mb-8">График направлений (Stream)</h2>
       <div
-        className="bg-white rounded-xl shadow-lg border border-gray-200 p-8"
-        style={{
-          width: chartWidth,
-          minWidth: chartWidth,
-          height: chartHeight,
-          minHeight: chartHeight,
-          maxWidth: "none",
-          maxHeight: "none",
-        }}
+        className="w-full h-full flex justify-center"
+        style={{ minWidth: "100vw", minHeight: "100vh", overflow: "auto" }}
       >
-        <svg
-          width={chartWidth}
-          height={chartHeight}
-          style={{ minWidth: chartWidth, minHeight: chartHeight }}
+        <div
+          className="bg-white rounded-xl shadow-lg border border-gray-200 p-8"
+          style={{
+            width: chartWidth,
+            height: chartHeight,
+            minWidth: chartWidth,
+            minHeight: chartHeight,
+          }}
         >
-          {/* Оси и подписи */}
-          {streamMap.map(([stream], i) => (
-            <g key={stream}>
-              {/* Подпись stream */}
-              <text
-                x={i * (colWidth + colGap) + colWidth / 2}
-                y={chartHeight - 8}
-                textAnchor="middle"
-                className="fill-slate-700 text-base"
-              >
-                {stream}
-              </text>
-            </g>
-          ))}
-          {/* Кирпичики-компании */}
-          {streamMap.map(([stream, companies], i) =>
-            companies.map((company, j) => (
-              <g key={company.id || company.company + j}>
-                {j === companies.length - 1 ? (
-                  // Верхний кирпичик с закруглением только сверху
-                  <path
-                    d={`M${i * (colWidth + colGap) + 8 + 8},${
-                      chartHeight - 40 - (j + 1) * (brickHeight + brickGap)
-                    }
-                        h${colWidth - 16 - 16}
-                        a8,8 0 0 1 8,8
-                        v${brickHeight - 8}
-                        h-${colWidth - 16}
-                        v-${brickHeight - 8}
-                        a8,8 0 0 1 8,-8
-                        z`}
-                    fill={getStreamColor(stream)}
-                    className="transition-all"
-                  />
-                ) : (
-                  <rect
+          <svg
+            width={chartWidth}
+            height={chartHeight}
+            style={{ minWidth: chartWidth, minHeight: chartHeight }}
+          >
+            {/* Оси и подписи */}
+            {streamMap.map(([stream], i) => (
+              <g key={stream}>
+                {/* Подпись stream */}
+                <text
+                  x={i * (colWidth + colGap) + colWidth / 2}
+                  y={chartHeight - 8}
+                  textAnchor="middle"
+                  className="fill-slate-700 text-base"
+                >
+                  {stream}
+                </text>
+              </g>
+            ))}
+            {/* Кирпичики-компании */}
+            {streamMap.map(([stream, companies], i) =>
+              companies.map((company, j) => (
+                <g key={company.id || company.company + j}>
+                  {j === companies.length - 1 ? (
+                    // Верхний кирпичик с закруглением только сверху
+                    <path
+                      d={`M${i * (colWidth + colGap) + 8 + 8},${
+                        chartHeight - 40 - (j + 1) * (brickHeight + brickGap)
+                      }
+                          h${colWidth - 16 - 16}
+                          a8,8 0 0 1 8,8
+                          v${brickHeight - 8}
+                          h-${colWidth - 16}
+                          v-${brickHeight - 8}
+                          a8,8 0 0 1 8,-8
+                          z`}
+                      fill={getStreamColor(stream)}
+                      className="transition-all"
+                    />
+                  ) : (
+                    <rect
+                      x={i * (colWidth + colGap) + 8}
+                      y={chartHeight - 40 - (j + 1) * (brickHeight + brickGap)}
+                      width={colWidth - 16}
+                      height={brickHeight}
+                      fill={getStreamColor(stream)}
+                      className="transition-all"
+                    />
+                  )}
+                  <foreignObject
                     x={i * (colWidth + colGap) + 8}
                     y={chartHeight - 40 - (j + 1) * (brickHeight + brickGap)}
                     width={colWidth - 16}
                     height={brickHeight}
-                    fill={getStreamColor(stream)}
-                    className="transition-all"
-                  />
-                )}
-                <foreignObject
-                  x={i * (colWidth + colGap) + 8}
-                  y={chartHeight - 40 - (j + 1) * (brickHeight + brickGap)}
-                  width={colWidth - 16}
-                  height={brickHeight}
-                  className="cursor-pointer hover:stroke-2 hover:stroke-indigo-700"
-                  onMouseEnter={(e) =>
-                    setTooltip({
-                      visible: true,
-                      content: company,
-                      position: { x: e.clientX, y: e.clientY },
-                    })
-                  }
-                  onMouseLeave={() =>
-                    setTooltip({ ...tooltip, visible: false })
-                  }
-                  onClick={() => {
-                    if (company.links && company.links.length > 0) {
-                      company.links.forEach((link) => {
-                        let url = link.trim();
-                        if (
-                          !url.startsWith("http://") &&
-                          !url.startsWith("https://")
-                        ) {
-                          url = "https://" + url;
-                        }
-                        window.open(url, "_blank");
-                      });
+                    className="cursor-pointer hover:stroke-2 hover:stroke-indigo-700"
+                    onMouseEnter={(e) =>
+                      setTooltip({
+                        visible: true,
+                        content: company,
+                        position: { x: e.clientX, y: e.clientY },
+                      })
                     }
-                  }}
-                >
-                  <div
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      color: "white",
-                      fontWeight: 600,
-                      fontSize: "14px",
-                      textAlign: "start",
-                      wordBreak: "break-word",
-                      whiteSpace: "pre-line",
-                      display: "flex",
-                      alignItems: "center",
-                      padding: "12px 16px",
+                    onMouseLeave={() =>
+                      setTooltip({ ...tooltip, visible: false })
+                    }
+                    onClick={() => {
+                      if (company.links && company.links.length > 0) {
+                        company.links.forEach((link) => {
+                          let url = link.trim();
+                          if (
+                            !url.startsWith("http://") &&
+                            !url.startsWith("https://")
+                          ) {
+                            url = "https://" + url;
+                          }
+                          window.open(url, "_blank");
+                        });
+                      }
                     }}
-                    className="select-none"
                   >
-                    {company.company}
-                  </div>
-                </foreignObject>
-              </g>
-            ))
-          )}
-        </svg>
+                    <div
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        color: "white",
+                        fontWeight: 600,
+                        fontSize: "14px",
+                        textAlign: "start",
+                        wordBreak: "break-word",
+                        whiteSpace: "pre-line",
+                        display: "flex",
+                        alignItems: "center",
+                        padding: "12px 16px",
+                      }}
+                      className="select-none"
+                    >
+                      {company.company}
+                    </div>
+                  </foreignObject>
+                </g>
+              ))
+            )}
+          </svg>
+        </div>
       </div>
       {/* Тултип */}
       {tooltip.visible && tooltip.content && (
