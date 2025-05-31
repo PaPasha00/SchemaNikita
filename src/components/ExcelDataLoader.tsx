@@ -102,17 +102,90 @@ export const ExcelDataLoader: React.FC<ExcelDataLoaderProps> = ({
           countryData.get(type)!.push(company);
         });
 
+        // --- Группировка европейских стран в отдельную группу 'Европа' ---
+        const europeanCountries = [
+          "австрия",
+          "бельгия",
+          "болгария",
+          "венгрия",
+          "германия",
+          "греция",
+          "дания",
+          "ирландия",
+          "испания",
+          "италия",
+          "кипр",
+          "латвия",
+          "литва",
+          "люксембург",
+          "мальта",
+          "нидерланды",
+          "польша",
+          "португалия",
+          "румыния",
+          "словакия",
+          "словения",
+          "финляндия",
+          "франция",
+          "хорватия",
+          "чехия",
+          "швеция",
+          "эстония",
+          "великобритания",
+          "швейцария",
+          "норвегия",
+          "исландия",
+          "сербия",
+          "босния и герцеговина",
+          "северная македония",
+          "черногория",
+          "албания",
+          "молдова",
+          "беларусь",
+          "украина",
+          "европа",
+        ];
+
         // Преобразуем сгруппированные данные в финальный формат
+        const europeTypeMap = new Map<string, any[]>();
         groupedByCountry.forEach((typeMap, country) => {
-          const countryData = {
-            country,
-            types: Array.from(typeMap.entries()).map(([type, companies]) => ({
-              type,
-              companies,
-            })),
-          };
-          transformedData.countries.push(countryData);
+          if (europeanCountries.includes(country)) {
+            typeMap.forEach((companies, type) => {
+              if (!europeTypeMap.has(type)) europeTypeMap.set(type, []);
+              // Добавляем originalCountry к каждой компании
+              const companiesWithCountry = companies.map((c) => ({
+                ...c,
+                originalCountry: country,
+              }));
+              europeTypeMap.get(type)!.push(...companiesWithCountry);
+            });
+          }
         });
+        // 1. Добавляем неевропейские страны
+        groupedByCountry.forEach((typeMap, country) => {
+          if (!europeanCountries.includes(country)) {
+            const countryData = {
+              country,
+              types: Array.from(typeMap.entries()).map(([type, companies]) => ({
+                type,
+                companies,
+              })),
+            };
+            transformedData.countries.push(countryData);
+          }
+        });
+        // 2. Добавляем Европу, если есть
+        if (europeTypeMap.size > 0) {
+          transformedData.countries.push({
+            country: "Европа",
+            types: Array.from(europeTypeMap.entries()).map(
+              ([type, companies]) => ({
+                type,
+                companies,
+              })
+            ),
+          });
+        }
 
         if (transformedData.countries.length === 0) {
           throw new Error("Не удалось извлечь данные из Excel файла");

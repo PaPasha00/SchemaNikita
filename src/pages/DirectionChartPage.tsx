@@ -1,13 +1,15 @@
 import React, { useMemo, useState } from "react";
 import type { ProjectData, Company } from "../types/dataTypes";
 
-interface BoxplotPageProps {
+interface DirectionChartPageProps {
   data: ProjectData;
 }
 
 type CompanyWithMeta = Company & { country: string; type: string };
 
-export const BoxplotPage: React.FC<BoxplotPageProps> = ({ data }) => {
+export const DirectionChartPage: React.FC<DirectionChartPageProps> = ({
+  data,
+}) => {
   // Собираем все компании по stream
   const streamMap = useMemo(() => {
     const map = new Map<string, CompanyWithMeta[]>();
@@ -71,9 +73,7 @@ export const BoxplotPage: React.FC<BoxplotPageProps> = ({ data }) => {
 
   return (
     <div className="w-full h-screen min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-8 overflow-auto">
-      <h2 className="text-2xl font-bold mb-8">
-        Boxplot по направлениям (Stream)
-      </h2>
+      <h2 className="text-2xl font-bold mb-8">График направлений (Stream)</h2>
       <div
         className="w-full h-full flex justify-center"
         style={{ minWidth: "100vw", minHeight: "100vh", overflow: "auto" }}

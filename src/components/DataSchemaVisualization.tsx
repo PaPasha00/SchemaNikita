@@ -14,7 +14,12 @@ export const DataSchemaVisualization: React.FC<
 > = ({ data }) => {
   const [tooltip, setTooltip] = useState({
     visible: false,
-    content: { description: "", year: "", stream: "" },
+    content: {
+      description: "",
+      year: "",
+      stream: "",
+      originalCountry: undefined as string | undefined,
+    },
     position: { x: 0, y: 0 },
   });
 
@@ -254,6 +259,7 @@ export const DataSchemaVisualization: React.FC<
         description: company.description,
         year: company.year,
         stream: company.stream || "",
+        originalCountry: company.originalCountry,
       },
       position: { x: e.clientX, y: e.clientY },
     });
@@ -262,6 +268,79 @@ export const DataSchemaVisualization: React.FC<
   const hideTooltip = () => {
     setTooltip({ ...tooltip, visible: false });
   };
+
+  // Список европейских стран (нижний регистр)
+  const europeanCountries = [
+    "австрия",
+    "бельгия",
+    "болгария",
+    "венгрия",
+    "германия",
+    "греция",
+    "дания",
+    "ирландия",
+    "испания",
+    "италия",
+    "кипр",
+    "латвия",
+    "литва",
+    "люксембург",
+    "мальта",
+    "нидерланды",
+    "польша",
+    "португалия",
+    "румыния",
+    "словакия",
+    "словения",
+    "финляндия",
+    "франция",
+    "хорватия",
+    "чехия",
+    "швеция",
+    "эстония",
+    "великобритания",
+    "швейцария",
+    "норвегия",
+    "исландия",
+    "сербия",
+    "босния и герцеговина",
+    "северная македония",
+    "черногория",
+    "албания",
+    "молдова",
+    "беларусь",
+    "украина",
+    "европа",
+  ];
+
+  // Возвращает массив: неевропейские страны + Европа
+  function getCountriesWithEurope(dataCountries: typeof data.countries) {
+    // 1. Неевропейские страны
+    const nonEurope = dataCountries.filter(
+      (c) => !europeanCountries.includes(c.country.toLowerCase())
+    );
+    // 2. Собираем все типы и компании из европейских стран
+    const europeTypeMap = new Map<string, Company[]>();
+    dataCountries.forEach((c) => {
+      if (europeanCountries.includes(c.country.toLowerCase())) {
+        c.types.forEach((type) => {
+          if (!europeTypeMap.has(type.type)) europeTypeMap.set(type.type, []);
+          europeTypeMap.get(type.type)!.push(...type.companies);
+        });
+      }
+    });
+    // 3. Формируем объект Европа
+    const europeTypes = Array.from(europeTypeMap.entries()).map(
+      ([type, companies]) => ({ type, companies })
+    );
+    const result = [...nonEurope];
+    if (europeTypes.length > 0) {
+      result.push({ country: "Европа", types: europeTypes });
+    }
+    return result;
+  }
+
+  const countriesForSchema = getCountriesWithEurope(data.countries);
 
   return (
     <div className="w-full h-full p-6 bg-gradient-to-br from-slate-50 to-slate-100 overflow-x-auto overflow-y-auto">
@@ -277,14 +356,14 @@ export const DataSchemaVisualization: React.FC<
 
         {/* Уровень 2: Страны */}
         <div className="flex justify-start mb-40 min-w-max">
-          {data.countries.map((country, countryIndex) => (
+          {countriesForSchema.map((country, countryIndex) => (
             <div
               key={countryIndex}
               className="flex flex-col items-center"
               style={{
                 width: country.types.length * 400 + "px",
                 marginRight:
-                  countryIndex < data.countries.length - 1 ? "66px" : "0",
+                  countryIndex < countriesForSchema.length - 1 ? "66px" : "0",
               }}
             >
               <CountryBlock
@@ -298,13 +377,13 @@ export const DataSchemaVisualization: React.FC<
 
         {/* Уровень 3 и 4: Типы и их компании */}
         <div className="flex justify-start min-w-max">
-          {data.countries.map((country, countryIndex) => (
+          {countriesForSchema.map((country, countryIndex) => (
             <div
               key={countryIndex}
               style={{
                 width: country.types.length * 400 + "px",
                 marginRight:
-                  countryIndex < data.countries.length - 1 ? "66px" : "0",
+                  countryIndex < countriesForSchema.length - 1 ? "66px" : "0",
               }}
             >
               <div className="flex flex-row items-start justify-center gap-8 min-w-max">
@@ -371,6 +450,12 @@ export const DataSchemaVisualization: React.FC<
             }}
           >
             <p className="mb-2">{tooltip.content.description}</p>
+            {/* Показываем оригинальную страну, если есть */}
+            {tooltip.content.originalCountry && (
+              <p className="text-slate-300 font-medium mb-1">
+                Страна: {tooltip.content.originalCountry}
+              </p>
+            )}
             <p className="text-slate-300 font-medium">
               Год: {tooltip.content.year}
             </p>

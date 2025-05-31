@@ -13,11 +13,13 @@ export const ExcelEditor: React.FC<ExcelEditorProps> = ({ onSave }) => {
     Year: "",
     Description: "",
     links: "",
+    Stream: "",
   });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [availableTypes, setAvailableTypes] = useState<string[]>([]);
   const [availableCountries, setAvailableCountries] = useState<string[]>([]);
+  const [availableStreams, setAvailableStreams] = useState<string[]>([]);
 
   useEffect(() => {
     // Загружаем доступные типы и страны при монтировании компонента
@@ -37,6 +39,8 @@ export const ExcelEditor: React.FC<ExcelEditorProps> = ({ onSave }) => {
         const types = new Set<string>();
         // Получаем уникальные страны
         const countries = new Set<string>();
+        // Получаем уникальные Stream
+        const streams = new Set<string>();
 
         jsonData.forEach((row) => {
           if (row.Type) {
@@ -45,10 +49,14 @@ export const ExcelEditor: React.FC<ExcelEditorProps> = ({ onSave }) => {
           if (row.Country) {
             countries.add(row.Country);
           }
+          if (row.Stream) {
+            streams.add(row.Stream);
+          }
         });
 
         setAvailableTypes(Array.from(types).sort());
         setAvailableCountries(Array.from(countries).sort());
+        setAvailableStreams(Array.from(streams).sort());
       } catch (error) {
         setError(error instanceof Error ? error.message : "Неизвестная ошибка");
       }
@@ -149,6 +157,7 @@ export const ExcelEditor: React.FC<ExcelEditorProps> = ({ onSave }) => {
         Year: "",
         Description: "",
         links: "",
+        Stream: "",
       });
 
       onSave();
@@ -199,21 +208,24 @@ export const ExcelEditor: React.FC<ExcelEditorProps> = ({ onSave }) => {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Тип
             </label>
-            <select
-              name="Type"
-              value={formData.Type}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              required
-              disabled={isLoading}
-            >
-              <option value="">Выберите тип</option>
-              {availableTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <input
+                type="text"
+                name="Type"
+                value={formData.Type}
+                onChange={handleInputChange}
+                list="types"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                required
+                disabled={isLoading}
+                placeholder="Введите или выберите тип"
+              />
+              <datalist id="types">
+                {availableTypes.map((type) => (
+                  <option key={type} value={type} />
+                ))}
+              </datalist>
+            </div>
           </div>
 
           <div>
@@ -244,6 +256,29 @@ export const ExcelEditor: React.FC<ExcelEditorProps> = ({ onSave }) => {
               required
               disabled={isLoading}
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Stream
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                name="Stream"
+                value={formData.Stream || ""}
+                onChange={handleInputChange}
+                list="streams"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                disabled={isLoading}
+                placeholder="Введите или выберите Stream (необязательно)"
+              />
+              <datalist id="streams">
+                {availableStreams.map((stream) => (
+                  <option key={stream} value={stream} />
+                ))}
+              </datalist>
+            </div>
           </div>
 
           <div>

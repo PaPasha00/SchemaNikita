@@ -11,6 +11,10 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onDataChange }) => {
   const [flagErrors, setFlagErrors] = useState<{ [key: string]: boolean }>({});
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [editRow, setEditRow] = useState<any | null>(null);
+  const [editForm, setEditForm] = useState<any | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   if (!data || !data.countries.length) {
     return <div className="p-4">Нет данных для отображения</div>;
@@ -113,6 +117,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onDataChange }) => {
         links: company.links?.join(", ") || "",
         nameOfWork: data.name,
         stream: company.stream,
+        originalCountry: company.originalCountry,
       }))
     )
   );
@@ -143,6 +148,12 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onDataChange }) => {
       // Конвертируем в JSON
       const jsonData = XLSX.utils.sheet_to_json(worksheet) as Array<any>;
 
+      // Для группы Европа ищем по originalCountry
+      const searchCountry =
+        rowData.country === "Европа" && rowData.originalCountry
+          ? rowData.originalCountry
+          : rowData.country;
+
       console.log("Данные для удаления:", {
         искомые_данные: {
           Country: rowData.country,
@@ -157,25 +168,18 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onDataChange }) => {
 
       // Находим запись для удаления, сравнивая все поля
       const index = jsonData.findIndex((row) => {
-        const match =
-          row.Country?.toLowerCase() === rowData.country.toLowerCase() &&
-          row.Type?.toLowerCase() === rowData.type.toLowerCase() &&
-          row.Company?.toLowerCase() === rowData.company.toLowerCase() &&
-          row.Year?.toString() === rowData.year.toString() &&
-          row.Description?.toLowerCase() === rowData.description.toLowerCase();
-
-        console.log("Сравнение записи:", {
-          существующая: {
-            Country: row.Country,
-            Type: row.Type,
-            Company: row.Company,
-            Year: row.Year,
-            Description: row.Description,
-          },
-          совпадение: match,
-        });
-
-        return match;
+        return (
+          (row.Country?.toString().trim().toLowerCase() || "") ===
+            (searchCountry?.toString().trim().toLowerCase() || "") &&
+          (row.Type?.toString().trim().toLowerCase() || "") ===
+            (rowData.type?.toString().trim().toLowerCase() || "") &&
+          (row.Company?.toString().trim().toLowerCase() || "") ===
+            (rowData.company?.toString().trim().toLowerCase() || "") &&
+          (row.Year?.toString().trim() || "") ===
+            (rowData.year?.toString().trim() || "") &&
+          (row.Description?.toString().trim().toLowerCase() || "") ===
+            (rowData.description?.toString().trim().toLowerCase() || "")
+        );
       });
 
       if (index === -1) {
@@ -230,6 +234,119 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onDataChange }) => {
     }
   };
 
+  const handleEdit = (rowData: any) => {
+    setEditRow(rowData);
+    setEditForm({
+      ...rowData,
+      country:
+        rowData.country === "Европа" && rowData.originalCountry
+          ? rowData.originalCountry
+          : rowData.country,
+    });
+    setEditError(null);
+  };
+
+  const handleEditFormChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setEditForm((prev: any) => ({ ...prev, [name]: value }));
+  };
+
+  const handleEditSave = async () => {
+    setIsSaving(true);
+    setEditError(null);
+    try {
+      // Загружаем текущий файл
+      const response = await fetch("/newData.xlsx");
+      if (!response.ok) throw new Error("Ошибка загрузки файла");
+      const arrayBuffer = await response.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer);
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet) as Array<any>;
+
+      // Находим индекс редактируемой строки
+      const index = jsonData.findIndex((row) => {
+        // Для группы Европа ищем по originalCountry
+        const searchCountry =
+          editRow.country === "Европа" && editRow.originalCountry
+            ? editRow.originalCountry
+            : editRow.country;
+        return (
+          (row.Country?.toString().trim().toLowerCase() || "") ===
+            (searchCountry?.toString().trim().toLowerCase() || "") &&
+          (row.Type?.toString().trim().toLowerCase() || "") ===
+            (editRow.type?.toString().trim().toLowerCase() || "") &&
+          (row.Company?.toString().trim().toLowerCase() || "") ===
+            (editRow.company?.toString().trim().toLowerCase() || "") &&
+          (row.Year?.toString().trim() || "") ===
+            (editRow.year?.toString().trim() || "") &&
+          (row.Description?.toString().trim().toLowerCase() || "") ===
+            (editRow.description?.toString().trim().toLowerCase() || "")
+        );
+      });
+      if (index === -1) throw new Error("Редактируемая запись не найдена");
+
+      // Обновляем данные
+      jsonData[index] = {
+        ...jsonData[index],
+        Country: editForm.country,
+        Type: editForm.type,
+        Company: editForm.company,
+        Year: editForm.year,
+        Description: editForm.description,
+        Stream: editForm.stream,
+        links: editForm.links,
+      };
+
+      // Сохраняем обратно
+      const newWorksheet = XLSX.utils.json_to_sheet(jsonData);
+      const newWorkbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(newWorkbook, newWorksheet, "Sheet1");
+      const newExcelBuffer = XLSX.write(newWorkbook, {
+        bookType: "xlsx",
+        type: "array",
+      });
+      const blob = new Blob([newExcelBuffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const formData = new FormData();
+      formData.append("file", blob, "newData.xlsx");
+      const saveResponse = await fetch("/api/saveExcel", {
+        method: "POST",
+        body: formData,
+      });
+      let responseData;
+      try {
+        const responseText = await saveResponse.text();
+        responseData = JSON.parse(responseText);
+      } catch (e: unknown) {
+        throw new Error(
+          "Некорректный ответ от сервера: " +
+            (e instanceof Error ? e.message : String(e))
+        );
+      }
+      if (!saveResponse.ok || !responseData.success) {
+        throw new Error(responseData.message || "Ошибка при сохранении файла");
+      }
+      setEditRow(null);
+      setEditForm(null);
+      if (onDataChange) onDataChange();
+    } catch (error) {
+      setEditError(
+        error instanceof Error ? error.message : "Неизвестная ошибка"
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleEditCancel = () => {
+    setEditRow(null);
+    setEditForm(null);
+    setEditError(null);
+  };
+
   return (
     <div className="flex flex-col h-full max-h-screen">
       <h2 className="text-2xl font-bold p-4 text-center">{data.name}</h2>
@@ -247,9 +364,9 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onDataChange }) => {
               <col className="w-[15%]" />
               <col className="w-[10%]" />
               <col className="w-[25%]" />
-              <col className="w-[10%]" /> {/* Stream */}
-              <col className="w-[10%]" /> {/* Ссылки */}
-              <col className="w-[5%]" /> {/* Для кнопки удаления */}
+              <col className="w-[10%]" />
+              <col className="w-[10%]" />
+              <col className="w-[5%]" />
             </colgroup>
             <thead>
               <tr className="bg-indigo-500 text-white sticky top-0 z-10">
@@ -271,15 +388,38 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onDataChange }) => {
                 >
                   <td className="p-4">
                     <div className="flex items-center gap-2">
-                      {!flagErrors[row.countryCode] && (
-                        <img
-                          src={`https://flagcdn.com/${row.countryCode}.svg`}
-                          alt={`${row.country} flag`}
-                          className="w-6 h-auto rounded-sm shadow-sm"
-                          onError={() => handleFlagError(row.countryCode)}
-                        />
+                      {/* Показываем флаг оригинальной страны, если страна Европа и есть originalCountry */}
+                      {row.country === "Европа" && row.originalCountry ? (
+                        <>
+                          {!flagErrors[getCountryCode(row.originalCountry)] && (
+                            <img
+                              src={`https://flagcdn.com/${getCountryCode(
+                                row.originalCountry!
+                              )}.svg`}
+                              alt={`${row.originalCountry} flag`}
+                              className="w-6 h-auto rounded-sm shadow-sm"
+                              onError={() =>
+                                handleFlagError(
+                                  getCountryCode(row.originalCountry!)
+                                )
+                              }
+                            />
+                          )}
+                          <span>Европа (страна: {row.originalCountry})</span>
+                        </>
+                      ) : (
+                        <>
+                          {!flagErrors[row.countryCode] && (
+                            <img
+                              src={`https://flagcdn.com/${row.countryCode}.svg`}
+                              alt={`${row.country} flag`}
+                              className="w-6 h-auto rounded-sm shadow-sm"
+                              onError={() => handleFlagError(row.countryCode)}
+                            />
+                          )}
+                          <span>{row.country}</span>
+                        </>
                       )}
-                      <span>{row.country}</span>
                     </div>
                   </td>
                   <td className="p-4">{row.type}</td>
@@ -318,29 +458,51 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onDataChange }) => {
                     </div>
                   </td>
                   <td className="p-4 text-center">
-                    <button
-                      onClick={() => handleDelete(row)}
-                      disabled={isDeleting}
-                      className={`p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors ${
-                        isDeleting ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
-                      title="Удалить запись"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
+                    <div className="flex gap-2 justify-center">
+                      <button
+                        onClick={() => handleEdit(row)}
+                        className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors"
+                        title="Редактировать запись"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                    </button>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15.232 5.232l3.536 3.536M9 13h3l8-8a2.828 2.828 0 00-4-4l-8 8v3zm0 0v3h3"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleDelete(row)}
+                        disabled={isDeleting}
+                        className={`p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors ${
+                          isDeleting ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
+                        title="Удалить запись"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -348,6 +510,104 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onDataChange }) => {
           </table>
         </div>
       </div>
+      {/* Модальное окно редактирования */}
+      {editRow && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-lg relative">
+            <h3 className="text-xl font-bold mb-4">Редактировать запись</h3>
+            {editError && <div className="mb-2 text-red-600">{editError}</div>}
+            <div className="space-y-3">
+              <label className="block">
+                <span className="text-gray-700">Страна</span>
+                <input
+                  name="country"
+                  value={editForm.country}
+                  onChange={handleEditFormChange}
+                  className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+                  disabled={isSaving}
+                />
+              </label>
+              <label className="block">
+                <span className="text-gray-700">Тип</span>
+                <input
+                  name="type"
+                  value={editForm.type}
+                  onChange={handleEditFormChange}
+                  className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+                  disabled={isSaving}
+                />
+              </label>
+              <label className="block">
+                <span className="text-gray-700">Компания</span>
+                <input
+                  name="company"
+                  value={editForm.company}
+                  onChange={handleEditFormChange}
+                  className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+                  disabled={isSaving}
+                />
+              </label>
+              <label className="block">
+                <span className="text-gray-700">Год</span>
+                <input
+                  name="year"
+                  value={editForm.year}
+                  onChange={handleEditFormChange}
+                  className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+                  disabled={isSaving}
+                />
+              </label>
+              <label className="block">
+                <span className="text-gray-700">Описание</span>
+                <textarea
+                  name="description"
+                  value={editForm.description}
+                  onChange={handleEditFormChange}
+                  className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+                  disabled={isSaving}
+                  rows={2}
+                />
+              </label>
+              <label className="block">
+                <span className="text-gray-700">Stream</span>
+                <input
+                  name="stream"
+                  value={editForm.stream || ""}
+                  onChange={handleEditFormChange}
+                  className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+                  disabled={isSaving}
+                />
+              </label>
+              <label className="block">
+                <span className="text-gray-700">Ссылки (через ;)</span>
+                <input
+                  name="links"
+                  value={editForm.links}
+                  onChange={handleEditFormChange}
+                  className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+                  disabled={isSaving}
+                />
+              </label>
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={handleEditCancel}
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                disabled={isSaving}
+              >
+                Отмена
+              </button>
+              <button
+                onClick={handleEditSave}
+                className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                disabled={isSaving}
+              >
+                {isSaving ? "Сохранение..." : "Сохранить"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

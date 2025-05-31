@@ -5,6 +5,7 @@ export interface Company {
   year: string;
   stream?: string;
   links?: string[];  // Optional array of links
+  originalCountry?: string; // Оригинальная страна для компаний из группы Европа
 }
 
 export interface SourceType {
