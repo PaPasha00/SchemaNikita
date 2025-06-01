@@ -72,15 +72,13 @@ export const DirectionChartPage: React.FC<DirectionChartPageProps> = ({
   const chartWidth = streamMap.length * (colWidth + colGap);
 
   return (
-    <div className="w-full h-screen min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-8 overflow-x-auto overflow-y-auto">
+    <div className="w-full h-screen min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-[100px] overflow-x-auto overflow-y-auto">
       <h2 className="text-2xl font-bold mb-8">График направлений (Stream)</h2>
       <div
         className="bg-white rounded-xl shadow-lg border border-gray-200 p-8"
         style={{
           width: chartWidth,
           minWidth: chartWidth,
-          height: chartHeight,
-          minHeight: chartHeight,
           maxWidth: "none",
           maxHeight: "none",
         }}
@@ -90,20 +88,6 @@ export const DirectionChartPage: React.FC<DirectionChartPageProps> = ({
           height={chartHeight}
           style={{ minWidth: chartWidth, minHeight: chartHeight }}
         >
-          {/* Оси и подписи */}
-          {streamMap.map(([stream], i) => (
-            <g key={stream}>
-              {/* Подпись stream */}
-              <text
-                x={i * (colWidth + colGap) + colWidth / 2}
-                y={chartHeight - 8}
-                textAnchor="middle"
-                className="fill-slate-700 text-base"
-              >
-                {stream}
-              </text>
-            </g>
-          ))}
           {/* Кирпичики-компании */}
           {streamMap.map(([stream, companies], i) =>
             companies.map((company, j) => (
@@ -188,6 +172,34 @@ export const DirectionChartPage: React.FC<DirectionChartPageProps> = ({
             ))
           )}
         </svg>
+        {/* Блок с подписями stream под графиком */}
+        <div
+          style={{
+            width: chartWidth,
+            overflowX: "hidden",
+            display: "flex",
+            marginTop: 12,
+          }}
+        >
+          {streamMap.map(([stream], i) => (
+            <div
+              key={stream}
+              style={{
+                width: colWidth,
+                textAlign: "center",
+                wordBreak: "break-word",
+                whiteSpace: "pre-line",
+                marginRight: i < streamMap.length - 1 ? colGap : 0,
+                fontSize: 16,
+                color: "#334155",
+                fontWeight: 600,
+                lineHeight: 1.2,
+              }}
+            >
+              {stream}
+            </div>
+          ))}
+        </div>
       </div>
       {/* Тултип */}
       {tooltip.visible && tooltip.content && (

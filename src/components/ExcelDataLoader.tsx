@@ -197,16 +197,26 @@ export const ExcelDataLoader: React.FC<ExcelDataLoaderProps> = ({
         const europeTypeMap = new Map<string, any[]>();
         const asiaTypeMap = new Map<string, any[]>();
         groupedByCountry.forEach((typeMap, country) => {
-          if (europeanCountries.includes(country)) {
+          // Разбиваем строку страны на массив стран по запятым
+          const countryList = country
+            .split(/,|;/)
+            .map((s: string) => s.trim().toLowerCase())
+            .filter(Boolean);
+          const isEurope = countryList.some((c) =>
+            europeanCountries.includes(c)
+          );
+          const isAsia = countryList.some((c) => asianCountries.includes(c));
+          if (isEurope) {
             typeMap.forEach((companies, type) => {
               if (!europeTypeMap.has(type)) europeTypeMap.set(type, []);
+              // originalCountry — исходная строка
               const companiesWithCountry = companies.map((c) => ({
                 ...c,
                 originalCountry: country,
               }));
               europeTypeMap.get(type)!.push(...companiesWithCountry);
             });
-          } else if (asianCountries.includes(country)) {
+          } else if (isAsia) {
             typeMap.forEach((companies, type) => {
               if (!asiaTypeMap.has(type)) asiaTypeMap.set(type, []);
               const companiesWithCountry = companies.map((c) => ({
@@ -219,10 +229,15 @@ export const ExcelDataLoader: React.FC<ExcelDataLoaderProps> = ({
         });
         // 1. Добавляем остальные страны
         groupedByCountry.forEach((typeMap, country) => {
-          if (
-            !europeanCountries.includes(country) &&
-            !asianCountries.includes(country)
-          ) {
+          const countryList = country
+            .split(/,|;/)
+            .map((s: string) => s.trim().toLowerCase())
+            .filter(Boolean);
+          const isEurope = countryList.some((c) =>
+            europeanCountries.includes(c)
+          );
+          const isAsia = countryList.some((c) => asianCountries.includes(c));
+          if (!isEurope && !isAsia) {
             const countryData = {
               country,
               types: Array.from(typeMap.entries()).map(([type, companies]) => ({
