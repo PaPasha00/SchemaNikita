@@ -102,7 +102,7 @@ export const ExcelDataLoader: React.FC<ExcelDataLoaderProps> = ({
           countryData.get(type)!.push(company);
         });
 
-        // --- Группировка европейских стран в отдельную группу 'Европа' ---
+        // --- Группировка европейских и азиатских стран в отдельные группы ---
         const europeanCountries = [
           "австрия",
           "бельгия",
@@ -145,25 +145,84 @@ export const ExcelDataLoader: React.FC<ExcelDataLoaderProps> = ({
           "украина",
           "европа",
         ];
+        const asianCountries = [
+          "китай",
+          "япония",
+          "южная корея",
+          "индия",
+          "израиль",
+          "турция",
+          "таиланд",
+          "вьетнам",
+          "сингапур",
+          "малайзия",
+          "индонезия",
+          "казахстан",
+          "узбекистан",
+          "пакистан",
+          "бангладеш",
+          "филиппины",
+          "тайвань",
+          "грузия",
+          "армения",
+          "азербайджан",
+          "кыргызстан",
+          "монголия",
+          "шри-ланка",
+          "камбоджа",
+          "лаос",
+          "непал",
+          "бруней",
+          "восточный тимор",
+          "малдивы",
+          "иордания",
+          "саудовская аравия",
+          "оаэ",
+          "объединённые арабские эмираты",
+          "катар",
+          "кувейт",
+          "бахрейн",
+          "омaн",
+          "йемен",
+          "афганистан",
+          "сирия",
+          "ирак",
+          "иран",
+          "ливан",
+          "палестина",
+          "азия",
+        ];
 
         // Преобразуем сгруппированные данные в финальный формат
         const europeTypeMap = new Map<string, any[]>();
+        const asiaTypeMap = new Map<string, any[]>();
         groupedByCountry.forEach((typeMap, country) => {
           if (europeanCountries.includes(country)) {
             typeMap.forEach((companies, type) => {
               if (!europeTypeMap.has(type)) europeTypeMap.set(type, []);
-              // Добавляем originalCountry к каждой компании
               const companiesWithCountry = companies.map((c) => ({
                 ...c,
                 originalCountry: country,
               }));
               europeTypeMap.get(type)!.push(...companiesWithCountry);
             });
+          } else if (asianCountries.includes(country)) {
+            typeMap.forEach((companies, type) => {
+              if (!asiaTypeMap.has(type)) asiaTypeMap.set(type, []);
+              const companiesWithCountry = companies.map((c) => ({
+                ...c,
+                originalCountry: country,
+              }));
+              asiaTypeMap.get(type)!.push(...companiesWithCountry);
+            });
           }
         });
-        // 1. Добавляем неевропейские страны
+        // 1. Добавляем остальные страны
         groupedByCountry.forEach((typeMap, country) => {
-          if (!europeanCountries.includes(country)) {
+          if (
+            !europeanCountries.includes(country) &&
+            !asianCountries.includes(country)
+          ) {
             const countryData = {
               country,
               types: Array.from(typeMap.entries()).map(([type, companies]) => ({
@@ -179,6 +238,18 @@ export const ExcelDataLoader: React.FC<ExcelDataLoaderProps> = ({
           transformedData.countries.push({
             country: "Европа",
             types: Array.from(europeTypeMap.entries()).map(
+              ([type, companies]) => ({
+                type,
+                companies,
+              })
+            ),
+          });
+        }
+        // 3. Добавляем Азию, если есть
+        if (asiaTypeMap.size > 0) {
+          transformedData.countries.push({
+            country: "Азия",
+            types: Array.from(asiaTypeMap.entries()).map(
               ([type, companies]) => ({
                 type,
                 companies,

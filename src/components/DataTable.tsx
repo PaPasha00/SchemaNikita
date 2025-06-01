@@ -388,10 +388,13 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onDataChange }) => {
                 >
                   <td className="p-4">
                     <div className="flex items-center gap-2">
-                      {/* Показываем флаг оригинальной страны, если страна Европа и есть originalCountry */}
-                      {row.country === "Европа" && row.originalCountry ? (
+                      {/* Показываем флаг оригинальной страны, если страна Европа или Азия и есть originalCountry */}
+                      {(row.country === "Европа" || row.country === "Азия") &&
+                      row.originalCountry ? (
                         <>
-                          {!flagErrors[getCountryCode(row.originalCountry)] && (
+                          {!flagErrors[
+                            getCountryCode(row.originalCountry!)
+                          ] && (
                             <img
                               src={`https://flagcdn.com/${getCountryCode(
                                 row.originalCountry!
@@ -405,7 +408,9 @@ export const DataTable: React.FC<DataTableProps> = ({ data, onDataChange }) => {
                               }
                             />
                           )}
-                          <span>Европа (страна: {row.originalCountry})</span>
+                          <span>
+                            {row.country} (страна: {row.originalCountry})
+                          </span>
                         </>
                       ) : (
                         <>
