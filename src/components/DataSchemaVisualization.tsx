@@ -171,7 +171,7 @@ export const DataSchemaVisualization: React.FC<
     }
 
     // Соединения: Страны -> Типы
-    data.countries.forEach((country, countryIndex) => {
+    countriesForSchema.forEach((country, countryIndex) => {
       const countryRect = connectionsRef.current[`country-${countryIndex}`];
 
       if (countryRect) {
@@ -250,6 +250,21 @@ export const DataSchemaVisualization: React.FC<
         }
       }
     });
+
+    // ВРЕМЕННАЯ ОТЛАДКА: выводим структуру типов и компаний внутри Европы
+    const europe = countriesForSchema.find((c) => c.country === "Европа");
+    if (europe) {
+      // eslint-disable-next-line no-console
+      console.log(
+        "Европа типы:",
+        europe.types.map((t) => ({
+          type: t.type,
+          companies: t.companies.map((c) => c.company),
+        }))
+      );
+    }
+    // eslint-disable-next-line no-console
+    console.log("connectionsRef:", connectionsRef.current);
   }, [data]);
 
   const showTooltip = (company: Company, e: React.MouseEvent) => {

@@ -73,7 +73,7 @@ export const DirectionChartPage: React.FC<DirectionChartPageProps> = ({
 
   return (
     <div className="w-full h-screen min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-8 overflow-auto">
-      <h2 className="text-2xl font-bold mb-8">График направлений (Stream)</h2>
+      <h2 className="text-2xl font-bold mb-8">График направлений</h2>
       <div
         className="w-full h-full flex justify-center"
         style={{ minWidth: "100vw", minHeight: "100vh", overflow: "auto" }}

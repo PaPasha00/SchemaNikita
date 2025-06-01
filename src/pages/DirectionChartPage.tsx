@@ -73,7 +73,7 @@ export const DirectionChartPage: React.FC<DirectionChartPageProps> = ({
 
   return (
     <div className="w-full h-screen min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-[100px] overflow-x-auto overflow-y-auto">
-      <h2 className="text-2xl font-bold mb-8">График направлений (Stream)</h2>
+      <h2 className="text-2xl font-bold mb-8">График направлений</h2>
       <div
         className="bg-white rounded-xl shadow-lg border border-gray-200 p-8"
         style={{
@@ -156,11 +156,9 @@ export const DirectionChartPage: React.FC<DirectionChartPageProps> = ({
                       color: "white",
                       fontWeight: 600,
                       fontSize: "14px",
-                      textAlign: "start",
+                      textAlign: "left",
                       wordBreak: "break-word",
                       whiteSpace: "pre-line",
-                      display: "flex",
-                      alignItems: "center",
                       padding: "12px 16px",
                     }}
                     className="select-none"
